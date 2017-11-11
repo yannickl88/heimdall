@@ -1,0 +1,136 @@
+#!/usr/bin/php
+<?php
+$template_http_redirect = <<<CONFIG
+<VirtualHost *:80>
+	ServerName {{DOMAIN}}
+	{{ALIAS}}
+
+	RewriteEngine On
+	RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R=301,L]
+</VirtualHost>
+CONFIG;
+
+$template_https = <<<CONFIG
+<IfModule mod_ssl.c>
+	<VirtualHost *:443>
+		ServerName {{DOMAIN}}
+		{{ALIAS}}
+		
+		ServerAdmin webmaster@localhost
+		DocumentRoot /var/www/{{DOMAIN}}/current/web
+		
+		ErrorLog \${APACHE_LOG_DIR}/error.log
+		CustomLog \${APACHE_LOG_DIR}/access.log combined
+
+		Include /etc/letsencrypt/options-ssl-apache.conf
+		SSLCertificateFile /etc/letsencrypt/live/{{DOMAIN}}/cert.pem
+		SSLCertificateKeyFile /etc/letsencrypt/live/{{DOMAIN}}/privkey.pem
+		SSLCertificateChainFile /etc/letsencrypt/live/{{DOMAIN}}/chain.pem
+
+		<Directory /var/www/{{DOMAIN}}/current/web>
+			Options {{INDEXES}}FollowSymLinks
+			AllowOverride All
+			Require all granted
+			Allow from all
+		</Directory>
+	</VirtualHost>
+</IfModule>
+
+CONFIG;
+
+$template_http = <<<CONFIG
+<VirtualHost *:{{PORT}}>
+	ServerName {{DOMAIN}}
+	{{ALIAS}}
+		
+	ServerAdmin webmaster@localhost
+	DocumentRoot /var/www/{{DOMAIN}}/current/web
+	
+	ErrorLog \${APACHE_LOG_DIR}/error.log
+	CustomLog \${APACHE_LOG_DIR}/access.log combined
+
+	<Directory /var/www/{{DOMAIN}}/current/web>
+		Options {{INDEXES}}FollowSymLinks
+		AllowOverride All
+		Require all granted
+		Allow from all
+	</Directory>
+</VirtualHost>
+
+CONFIG;
+
+$options = [
+	'help' => false,
+	'http' => false,
+	'no-index' => false,
+	'alias' => false,
+	'port' => 80,
+];
+$arguments = [];
+
+// Parse input
+for ($i = 1; $i < $argc; $i++) {
+	if (substr($argv[$i], 0, 2) === '--') {
+		$option = explode("=", substr($argv[$i], 2));
+		
+		if (!isset($options[$option[0]])) {
+			echo 'Unknown option ', $argv[$i], ".\n";
+			exit(1);
+		}
+		
+		if (in_array($option[0], ['port', 'alias'])) {
+			$options[$option[0]] = $option[1] ?? $argv[++$i];
+		} else {
+			$options[$option[0]] = true;
+		}
+		continue;
+	}
+	
+	$arguments[] = $argv[$i];
+}
+
+if ($options['help']) {
+	echo "Usage: gen-host [OPTION]... DOMAIN\n",
+		"Generate a vhost file content to use with Apache.\n",
+		"Example: genhost --http google.com\n",
+		"\n",
+		"Options to use\n",
+		"  --alias=NAME Create a vhost which has a server alias.\n",
+		"  --help       Print this help.\n",
+		"  --http       Create a vhost only for http usage, no redirect on port 80.\n",
+		"  --no-index   Create a vhost which has Indexing disabled.\n",
+		"  --port       Create a vhost which has an alternative port, this will create a HTTP only vhost.\n",
+		"";
+	
+	exit(0);
+}
+
+if (count($arguments) !== 1) {
+	echo "Not enough arguments\n";
+	exit(1);
+}
+
+if ($options['http'] || $options['port']) {
+	$template = $template_http;
+} else {
+	$template = $template_http_redirect . "\n\n" . $template_https;
+}
+
+if ($options['no-index']) {
+	$template = str_replace('{{INDEXES}}', '', $template);
+} else {
+	$template = str_replace('{{INDEXES}}', 'Indexes ', $template);
+}
+
+if (false !== $options['alias']) {
+	$template = str_replace('{{ALIAS}}', 'ServerAlias ' . $options['alias'] . '.{{DOMAIN}}', $template);
+} else {
+	$template = str_replace('{{ALIAS}}', '# No ServerAlias', $template);
+}
+
+$template = str_replace('{{PORT}}', $options['port'], $template);
+
+$domain = $arguments[0];
+
+echo str_replace('{{DOMAIN}}', $domain, $template);
+
