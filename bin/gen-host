@@ -110,7 +110,7 @@ if (count($arguments) !== 1) {
 	exit(1);
 }
 
-if ($options['http'] || $options['port']) {
+if ($options['http'] || $options['port'] !== 80) {
 	$template = $template_http;
 } else {
 	$template = $template_http_redirect . "\n\n" . $template_https;
