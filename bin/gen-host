@@ -5,6 +5,7 @@ $template_http_redirect = <<<CONFIG
 	ServerName {{DOMAIN}}
 	{{ALIAS}}
 
+	{{CONFIG_INCLUDE}}
 	RewriteEngine On
 	RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R=301,L]
 </VirtualHost>
@@ -15,10 +16,11 @@ $template_https = <<<CONFIG
 	<VirtualHost *:443>
 		ServerName {{DOMAIN}}
 		{{ALIAS}}
-		
+
+		{{CONFIG_INCLUDE}}
 		ServerAdmin webmaster@localhost
 		DocumentRoot /var/www/{{DOMAIN}}/current/web
-		
+
 		ErrorLog \${APACHE_LOG_DIR}/error.log
 		CustomLog \${APACHE_LOG_DIR}/access.log combined
 
@@ -42,10 +44,11 @@ $template_http = <<<CONFIG
 <VirtualHost *:{{PORT}}>
 	ServerName {{DOMAIN}}
 	{{ALIAS}}
-		
+
+	{{CONFIG_INCLUDE}}
 	ServerAdmin webmaster@localhost
 	DocumentRoot /var/www/{{DOMAIN}}/current/web
-	
+
 	ErrorLog \${APACHE_LOG_DIR}/error.log
 	CustomLog \${APACHE_LOG_DIR}/access.log combined
 
@@ -64,6 +67,7 @@ $options = [
 	'http' => false,
 	'no-index' => false,
 	'alias' => false,
+	'config' => false,
 	'port' => 80,
 ];
 $arguments = [];
@@ -78,7 +82,7 @@ for ($i = 1; $i < $argc; $i++) {
 			exit(1);
 		}
 		
-		if (in_array($option[0], ['port', 'alias'])) {
+		if (in_array($option[0], ['port', 'alias', 'config'])) {
 			$options[$option[0]] = $option[1] ?? $argv[++$i];
 		} else {
 			$options[$option[0]] = true;
@@ -95,11 +99,12 @@ if ($options['help']) {
 		"Example: genhost --http google.com\n",
 		"\n",
 		"Options to use\n",
-		"  --alias=NAME Create a vhost which has a server alias.\n",
-		"  --help       Print this help.\n",
-		"  --http       Create a vhost only for http usage, no redirect on port 80.\n",
-		"  --no-index   Create a vhost which has Indexing disabled.\n",
-		"  --port       Create a vhost which has an alternative port, this will create a HTTP only vhost.\n",
+		"  --alias=NAME  Create a vhost which has a server alias.\n",
+		"  --config=FILE Include an additional config file.\n",
+		"  --help        Print this help.\n",
+		"  --http        Create a vhost only for http usage, no redirect on port 80.\n",
+		"  --no-index    Create a vhost which has Indexing disabled.\n",
+		"  --port        Create a vhost which has an alternative port, this will create a HTTP only vhost.\n",
 		"";
 	
 	exit(0);
@@ -126,6 +131,12 @@ if (false !== $options['alias']) {
 	$template = str_replace('{{ALIAS}}', 'ServerAlias ' . $options['alias'] . '.{{DOMAIN}}', $template);
 } else {
 	$template = str_replace('{{ALIAS}}', '# No ServerAlias', $template);
+}
+
+if (false !== $options['config']) {
+	$template = str_replace('{{CONFIG_INCLUDE}}', 'Include "' . $options['config'] . "\"\n", $template);
+} else {
+	$template = str_replace('{{CONFIG_INCLUDE}}', '', $template);
 }
 
 $template = str_replace('{{PORT}}', $options['port'], $template);
