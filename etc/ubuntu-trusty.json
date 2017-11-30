@@ -1,0 +1,7 @@
+{
+  "description": "Defaults for Ubuntu Trusty Tahr (14.04) which contains some common defaults.",
+  "directives": {
+    "etc.apache.vhost_location" : "/etc/apache2/sites-available/",
+    "etc.env.vars_location" : "/root/"
+  }
+}

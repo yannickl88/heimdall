@@ -1,0 +1,10 @@
+{
+  "description": "Base settings for a HTTPS config using let's encrypt",
+  "directives": {
+    "host.schema" : "https",
+    "cert.base_path" : "/etc/letsencrypt/live",
+    "cert.cert_name" : "cert.pem",
+    "cert.privkey_name" : "privkey.pem",
+    "cert.chain_name" : "chain.pem"
+  }
+}

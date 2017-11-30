@@ -1,0 +1,95 @@
+#!/usr/bin/php
+<?php
+require __DIR__ . '/../vendor/autoload.php';
+
+function parseArgs($argv, array $options = [], array $option_values = []) {
+    $options['help'] = false;
+    $arguments = [];
+
+    // Parse input
+    for ($i = 1, $n = count($argv); $i < $n; $i++) {
+        if (0 === strpos($argv[$i], '--')) {
+            $option = explode('=', substr($argv[$i], 2));
+
+            if (!isset($options[$option[0]])) {
+                echo 'Unknown option ', $argv[$i], ".\n";
+                exit(1);
+            }
+
+            if (in_array($option[0], $option_values, true)) {
+                $options[$option[0]] = $option[1] ?? $argv[++$i];
+            } else {
+                $options[$option[0]] = true;
+            }
+            continue;
+        }
+
+        $arguments[] = $argv[$i];
+    }
+
+    return [$options, $arguments];
+}
+
+[$options, $arguments] = parseArgs($argv, ['quiet' => false]);
+
+if ($options['help']) {
+    echo "Usage: run [OPTION]... [FILE|DIRECTORY]\n",
+        "Run tasks based on a configuration file.\n",
+        "Examples:\n",
+        "    run some.site.json\n",
+        "    run --quiet some/directory\n",
+        "\n",
+        "Options to use\n",
+        "  --help        Print this help.\n",
+        "  --quiet       Does not print any output other than errors.\n";
+
+    exit(0);
+}
+
+if (count($arguments) !== 1) {
+    echo "Wrong number of arguments, expected only 1.\n";
+
+    exit(1);
+}
+
+if (!file_exists($arguments[0])) {
+    echo "File does not exists.\n";
+
+    exit(1);
+}
+
+$files = is_file($arguments[0]) ? [$arguments[0]] : glob($arguments[0] . '/*.json');
+
+foreach ($files as $file) {
+    if (!$options['quiet']) {
+        echo 'Processing config ', realpath($file), "\n";
+    }
+
+    try {
+        $task_loader = new \Yannickl88\Server\TaskLoader();
+        $config = new \Yannickl88\Server\Config\Config($file);
+        $config->save();
+
+        foreach ($task_loader->getTasks($config->getTasks()) as $task) {
+            if (!$options['quiet']) {
+                echo '  - Running task ', get_class($task), '...';
+            }
+
+            $task->run($config);
+
+            if (!$options['quiet']) {
+                echo " DONE\n";
+            }
+        }
+    } catch (\Throwable $e) {
+        if (!$options['quiet']) {
+            echo " ERROR\n";
+        }
+
+        echo 'Error when processing config ' . realpath($file) . "\n\n",
+            '[' . get_class($e) . ']',
+            'Exception occured: ' . $e->getMessage() . "\n\n",
+            $e->getTraceAsString() . "\n\n",
+            "-----------------\n\n";
+    }
+}

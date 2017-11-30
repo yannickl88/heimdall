@@ -1,0 +1,25 @@
+{
+    "name": "yannick/vhost-helper",
+    "description": "Tool for managing server configuration.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Yannick de Lange",
+            "email": "yannick.l.88@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Yannickl88\\Server\\" : "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Yannickl88\\Server\\" : "test/"
+        }
+    },
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^6.4"
+    }
+}

@@ -1,0 +1,6 @@
+{
+  "description": "test settings with bad include",
+  "includes": [
+    "thisincludedoesnotexists"
+  ]
+}
