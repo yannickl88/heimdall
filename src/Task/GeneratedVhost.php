@@ -73,8 +73,8 @@ class GeneratedVhost implements TaskInterface
             'ServerAdmin webmaster@localhost',
             'DocumentRoot /var/www/' . $config->getFact('host.name') . '/current/web',
             '',
-            'ErrorLog \${APACHE_LOG_DIR}/error.log',
-            'CustomLog \${APACHE_LOG_DIR}/access.log combined',
+            'ErrorLog ${APACHE_LOG_DIR}/error.log',
+            'CustomLog ${APACHE_LOG_DIR}/access.log combined',
             '',
         ];
     }
