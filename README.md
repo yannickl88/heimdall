@@ -88,7 +88,7 @@ The following example will create a vhost file with SSL let's encrypt settings a
     "host.name" : "my.site",
     "host.alias" : "www.my.site",
     "app.secret" : "@GEN(50;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ)",
-    "db.user" : "cal-calc",
+    "db.user" : "db-user",
     "db.pass" : "@GEN(20)"
   },
   "env-variables": {
