@@ -62,7 +62,7 @@ class GeneratedVhost implements TaskInterface
             array_splice($lines[1], 0, 0, $this->getServerName($config));
         }
 
-        $file = $config->getFact('etc.apache.vhost_location') . '/' . $config->getFact('host.name') . '.conf';
+        $file = $config->getFact('etc.apache.vhost_location') . $config->getFact('host.name') . '.conf';
 
         file_put_contents($file, $this->implode($lines));
     }

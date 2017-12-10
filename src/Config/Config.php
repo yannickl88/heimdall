@@ -6,7 +6,6 @@ namespace Yannickl88\Server\Config;
 final class Config implements ConfigInterface
 {
     private const DEFAULT_KEYSPACE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_*-+!$%=';
-
     public static function generate(int $length = 10, string $hint = ''): string
     {
         $keyspace = !empty($hint) ? $hint : self::DEFAULT_KEYSPACE;
@@ -19,31 +18,18 @@ final class Config implements ConfigInterface
         return $str;
     }
 
-    private $lock_file;
-    private $lock_data;
+    private $data_store;
+    private $identifier;
     private $directives = [];
     private $environment_variables = [];
     private $tasks = [];
 
-    public function __construct(string $config_file)
+    public function __construct(string $identifier, array $config_data, ScopedDataStoreInterface $data_store)
     {
-        if (!file_exists($config_file)) {
-            throw new \RuntimeException(sprintf('Unknown file "%s".', $config_file));
-        }
+        $this->data_store = $data_store;
+        $this->identifier = $identifier;
 
-        // Lock location needed for saving it back.
-        $this->lock_file = $config_file . '.lock';
-
-        if (file_exists($this->lock_file)) {
-            $this->lock_data = json_decode(file_get_contents($this->lock_file), true);
-        } else {
-            $this->lock_data = [
-                'facts' => []
-            ];
-        }
-
-        // load the config
-        $this->load(json_decode(file_get_contents($config_file), true));
+        $this->load($config_data);
     }
 
     private function load(array $data)
@@ -58,7 +44,17 @@ final class Config implements ConfigInterface
                 throw new \RuntimeException(sprintf('Bad include format for "%s".', $include));
             }
 
-            $config = new self(dirname(__DIR__, 2) . '/etc/' . $include . '.json');
+            $file = dirname(__DIR__, 2) . '/etc/' . $include . '.json';
+
+            if (!file_exists($file)) {
+                throw new \RuntimeException(sprintf('Unknown file "%s".', $file));
+            }
+
+            $config = new self(
+                $include,
+                json_decode(file_get_contents($file), true),
+                $this->data_store
+            );
 
             $directives[] = $config->directives;
             $environment_variables[] = $config->environment_variables;
@@ -73,23 +69,11 @@ final class Config implements ConfigInterface
         $this->directives = array_merge(...$directives);
         $this->environment_variables = array_merge(...$environment_variables);
         $this->tasks = array_merge(...$tasks);
-
-        // Build the lock data
-        foreach ($this->directives as $key => $value) {
-            $hash = md5($value);
-
-            if (!isset($this->lock_data['facts'][$key]) || $hash !== $this->lock_data['facts'][$key]['hash']) {
-                $this->lock_data['facts'][$key] = [
-                    'value' => $this->evaluateFact($value),
-                    'hash'  => $hash
-                ];
-            }
-        }
     }
 
-    public function save(): void
+    public function getIdentifier(): string
     {
-        file_put_contents($this->lock_file, json_encode($this->lock_data, JSON_PRETTY_PRINT));
+        return $this->identifier;
     }
 
     public function getEnvironmentVariableKeys(): array
@@ -126,7 +110,18 @@ final class Config implements ConfigInterface
             ));
         }
 
-        return $this->lock_data['facts'][$key]['value'];
+        $directive = $this->directives[$key];
+
+        // was is stored before and still up-to-date?
+        if ($this->data_store->has($key, $directive)) {
+            return $this->data_store->get($key);
+        }
+
+        $fact = $this->evaluateFact($directive);
+
+        $this->data_store->put($key, $directive, $fact);
+
+        return $fact;
     }
 
     private function evaluateFact(string $raw_value): string

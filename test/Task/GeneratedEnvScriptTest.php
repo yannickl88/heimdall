@@ -39,7 +39,7 @@ class GeneratedEnvScriptTest extends TestCase
         $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
         $config->getEnvironmentVariable('foo')->willReturn('foobar');
         $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.env.vars_location')->willReturn(__DIR__);
+        $config->getFact('etc.env.vars_location')->willReturn(__DIR__ . '/');
         $config->getFact('host.name')->willReturn('foo.bar');
 
         $this->generated_env_script->run($config->reveal());

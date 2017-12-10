@@ -23,6 +23,8 @@ namespace Yannickl88\Server\Config;
  */
 interface ConfigInterface
 {
+    public function getIdentifier(): string;
+
     /**
      * Return the task identifiers to run.
      *

@@ -26,7 +26,7 @@ class GeneratedEnvScript implements TaskInterface
 
         $lines[] = '';
 
-        $file = $config->getFact('etc.env.vars_location') . '/' . $config->getFact('host.name') . '.sh';
+        $file = $config->getFact('etc.env.vars_location') . $config->getFact('host.name') . '.sh';
 
         file_put_contents($file, implode("\n", $lines));
     }

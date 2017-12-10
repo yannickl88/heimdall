@@ -30,7 +30,7 @@ function parseArgs($argv, array $options = [], array $option_values = []) {
     return [$options, $arguments];
 }
 
-[$options, $arguments] = parseArgs($argv, ['quiet' => false]);
+[$options, $arguments] = parseArgs($argv, ['quiet' => false, 'register' => false, 'add' => false]);
 
 if ($options['help']) {
     echo "Usage: run [OPTION]... [FILE|DIRECTORY]\n",
@@ -46,30 +46,103 @@ if ($options['help']) {
     exit(0);
 }
 
-if (count($arguments) !== 1) {
-    echo "Wrong number of arguments, expected only 1.\n";
+$datastore = new \Yannickl88\Server\Config\DataStore(
+    'heimdal.lock',
+    new \Yannickl88\Server\Config\DataStoreSerializer()
+);
 
-    exit(1);
-}
+if ($options['register']) {
+    if (count($arguments) !== 1) {
+        echo "Wrong number of arguments, expected 1.\n";
 
-if (!file_exists($arguments[0])) {
-    echo "File does not exists.\n";
-
-    exit(1);
-}
-
-$files = is_file($arguments[0]) ? [$arguments[0]] : glob($arguments[0] . '/*.json');
-
-foreach ($files as $file) {
-    if (!$options['quiet']) {
-        echo 'Processing config ', realpath($file), "\n";
+        exit(1);
     }
 
-    try {
-        $task_loader = new \Yannickl88\Server\TaskLoader();
-        $config = new \Yannickl88\Server\Config\Config($file);
-        $config->save();
+    $repository_url = $arguments[0];
+    $token = null;
 
+    echo "Adding \"$repository_url\". Token required.\n";
+
+    try {
+        $loader = $datastore->register($repository_url);
+        if ($loader->needsToken()) {
+            // ask for token
+            $token = readline('Token: ');
+        }
+
+        $loader->init($token);
+    } catch (\RuntimeException $e) {
+        echo 'Error! ', $e->getMessage(), "\n";
+
+        exit(1);
+    }
+
+    $datastore->save();
+
+    echo "Repository has been registered.\n";
+
+    exit(0);
+}
+
+if ($options['add']) {
+    if (count($arguments) !== 1) {
+        echo "Wrong number of arguments, expected 1.\n";
+
+        exit(1);
+    }
+
+    $identifier = $arguments[0];
+
+    try {
+        $loader = $datastore->add($identifier);
+    } catch (\RuntimeException $e) {
+        echo 'Error! ', $e->getMessage(), "\n";
+
+        exit(1);
+    }
+
+    $possible_repositories = $loader->getRepositories();
+
+    if (count($possible_repositories) === 0) {
+        echo "No repository found which contains \"$identifier\".\n";
+
+        exit(1);
+    }
+
+    $selected_repository = null;
+
+    if (count($possible_repositories) === 1) {
+        $selected_repository = $possible_repositories[0];
+    } else {
+        do {
+            echo "Multiple repositories found which have configuration for \"$identifier\".\n",
+                "Which one do you want to use?\n";
+            foreach ($possible_repositories as $i => $possible_repository) {
+                echo ' [' . ($i + 1) . "] $possible_repository\n";
+            }
+
+            $choice = readline('Repository: ');
+
+            if (ctype_digit($choice) && 0 < (int) $choice && count($possible_repositories) > (int) $choice) {
+                $selected_repository = $possible_repositories[(int) $choice - 1];
+            } else {
+                echo "Please pick a number between 1 and {count($possible_repositories}\n";
+            }
+        } while($selected_repository === null);
+    }
+
+    $loader->initFrom($selected_repository);
+    $datastore->save();
+
+    echo "Config has been added.\n";
+
+    exit(0);
+}
+
+foreach ($datastore->configs() as $config) {
+    $task_loader = new \Yannickl88\Server\TaskLoader();
+
+    try {
         foreach ($task_loader->getTasks($config->getTasks()) as $task) {
             if (!$options['quiet']) {
                 echo '  - Running task ', get_class($task), '...';
@@ -86,10 +159,12 @@ foreach ($files as $file) {
             echo " ERROR\n";
         }
 
-        echo 'Error when processing config ' . realpath($file) . "\n\n",
+        echo 'Error when processing config ' . $config->getIdentifier() . "\n\n",
             '[' . get_class($e) . ']',
             'Exception occured: ' . $e->getMessage() . "\n\n",
             $e->getTraceAsString() . "\n\n",
-            "-----------------\n\n";
+        "-----------------\n\n";
+    } finally {
+        $datastore->save();
     }
 }

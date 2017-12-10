@@ -39,7 +39,7 @@ class GeneratedVhostTest extends TestCase
         $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
         $config->getEnvironmentVariable('foo')->willReturn('foobar');
         $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__);
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
         $config->getFact('host.name')->willReturn('foo.bar');
         $config->getFact('host.schema', 'http')->willReturn('http');
         $config->getFact('host.indexed', 'no')->willReturn('no');
@@ -57,7 +57,7 @@ class GeneratedVhostTest extends TestCase
         $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
         $config->getEnvironmentVariable('foo')->willReturn('foobar');
         $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__);
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
         $config->getFact('host.name')->willReturn('foo.bar');
         $config->getFact('host.alias')->willReturn('www.foo.bar');
         $config->getFact('host.schema', 'http')->willReturn('http');
@@ -76,7 +76,7 @@ class GeneratedVhostTest extends TestCase
         $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
         $config->getEnvironmentVariable('foo')->willReturn('foobar');
         $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__);
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
         $config->getFact('host.name')->willReturn('foo.bar');
         $config->getFact('host.schema', 'http')->willReturn('http');
         $config->getFact('host.indexed', 'no')->willReturn('yes');
@@ -94,7 +94,7 @@ class GeneratedVhostTest extends TestCase
         $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
         $config->getEnvironmentVariable('foo')->willReturn('foobar');
         $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__);
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
         $config->getFact('host.name')->willReturn('foo.bar');
         $config->getFact('host.schema', 'http')->willReturn('http');
         $config->getFact('host.port')->willReturn('1234');
@@ -113,7 +113,7 @@ class GeneratedVhostTest extends TestCase
         $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
         $config->getEnvironmentVariable('foo')->willReturn('foobar');
         $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__);
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
         $config->getFact('host.name')->willReturn('foo.bar');
         $config->getFact('host.schema', 'http')->willReturn('https');
         $config->getFact('host.indexed', 'no')->willReturn('no');
@@ -135,7 +135,7 @@ class GeneratedVhostTest extends TestCase
         $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
         $config->getEnvironmentVariable('foo')->willReturn('foobar');
         $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__);
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
         $config->getFact('host.name')->willReturn('foo.bar');
         $config->getFact('host.alias')->willReturn('www.foo.bar');
         $config->getFact('host.schema', 'http')->willReturn('https');
@@ -161,7 +161,7 @@ class GeneratedVhostTest extends TestCase
         $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
         $config->getEnvironmentVariable('foo')->willReturn('foobar');
         $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__);
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
         $config->getFact('host.name')->willReturn('foo.bar');
         $config->getFact('host.schema', 'http')->willReturn('https');
         $config->getFact('host.indexed', 'no')->willReturn('yes');
@@ -186,7 +186,7 @@ class GeneratedVhostTest extends TestCase
         $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
         $config->getEnvironmentVariable('foo')->willReturn('foobar');
         $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__);
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
         $config->getFact('host.name')->willReturn('foo.bar');
         $config->getFact('host.schema', 'http')->willReturn('https');
         $config->getFact('host.port')->willReturn('1234');

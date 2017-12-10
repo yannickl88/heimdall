@@ -25,9 +25,21 @@ class ConfigTest extends TestCase
 
     public function testConfig()
     {
-        $config = new Config(__DIR__ . '/config.json');
-        $config->save();
+        $api = $this->prophesize(ApiInterface::class);
+        $serializer = $this->prophesize(SerializerInterface::class);
 
+        $api->fetchIdentifiers('http://foo.bar', 'foobar')->willReturn(['test']);
+        $api
+            ->fetchConfig('http://foo.bar', 'foobar', 'test')
+            ->willReturn(json_decode(file_get_contents(__DIR__ . '/config.json'), true));
+
+        $data_store = new DataStore('phpunit', $api->reveal(), $serializer->reveal());
+        $data_store->register('http://foo.bar')->init('foobar');
+        $data_store->add('test')->initFrom('http://foo.bar');
+
+        $config = $data_store->configs()[0];
+
+        self::assertSame('test', $config->getIdentifier());
         self::assertSame('bar', $config->getFact('foo'));
         self::assertSame('baz', $config->getFact('bar'));
         self::assertSame($config->getFact('gen'), $config->getFact('gen'));
@@ -39,22 +51,11 @@ class ConfigTest extends TestCase
         self::assertSame('bar-baz', $config->getEnvironmentVariable('FOO'));
         self::assertSame(['some:task'], $config->getTasks());
 
-        self::assertFileExists(__DIR__ . '/config.json.lock');
-
         // load config again
-        $config_new = new Config(__DIR__ . '/config.json');
+        $config_new = $data_store->configs()[0];
 
         // Make sure the generated values are the same after a reload
         self::assertSame($config->getFact('gen'), $config_new->getFact('gen'));
-    }
-
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessageRegExp /Unknown file ".*\/thisdoesnotexists.json"./
-     */
-    public function testConfigBadFile()
-    {
-        new Config(__DIR__ . '/thisdoesnotexists.json');
     }
 
     /**
@@ -63,7 +64,9 @@ class ConfigTest extends TestCase
      */
     public function testConfigBadInclude()
     {
-        new Config(__DIR__ . '/bad-include.json');
+        $data_store = $this->prophesize(ScopedDataStoreInterface::class);
+
+        new Config('phpunit', ['includes' => ['thisincludedoesnotexists']], $data_store->reveal());
     }
 
     /**
@@ -72,7 +75,9 @@ class ConfigTest extends TestCase
      */
     public function testConfigBadIncludeFormat()
     {
-        new Config(__DIR__ . '/bad-include-format.json');
+        $data_store = $this->prophesize(ScopedDataStoreInterface::class);
+
+        new Config('phpunit', ['includes' => ['../thisincludedoesnotexists']], $data_store->reveal());
     }
 
     /**
@@ -81,7 +86,9 @@ class ConfigTest extends TestCase
      */
     public function testConfigMissingEnvVar()
     {
-        $config = new Config(__DIR__ . '/config.json');
+        $data_store = $this->prophesize(ScopedDataStoreInterface::class);
+
+        $config = new Config('phpunit', [], $data_store->reveal());
         $config->getEnvironmentVariable('THISDOESNOTEXISTS');
     }
 
@@ -91,13 +98,15 @@ class ConfigTest extends TestCase
      */
     public function testConfigMissingFact()
     {
-        $config = new Config(__DIR__ . '/config.json');
+        $data_store = $this->prophesize(ScopedDataStoreInterface::class);
+        $config = new Config('phpunit', [], $data_store->reveal());
         $config->getFact('THISDOESNOTEXISTS');
     }
 
     public function testConfigMissingFactWithDefault()
     {
-        $config = new Config(__DIR__ . '/config.json');
+        $data_store = $this->prophesize(ScopedDataStoreInterface::class);
+        $config = new Config('phpunit', [], $data_store->reveal());
         self::assertSame('foobar', $config->getFact('THISDOESNOTEXISTS', 'foobar'));
     }
 }

@@ -1,20 +1,23 @@
 {
-  "description": "test settings",
-  "includes": [
-    "https-lets-encrypt"
-  ],
-  "directives": {
-    "foo" : "bar",
-    "bar" : "baz",
-    "gen" : "@GEN",
-    "gen-20" : "@GEN(20)",
-    "gen-20-numbers" : "@GEN(20;0123456789)"
-  },
-  "env-variables": {
-    "FOO" : "%foo%-%bar%",
-    "STATIC" : "phpunit"
-  },
-  "tasks": [
-    "some:task"
-  ]
+  "data" : {
+    "description": "test settings",
+    "includes": [
+      "https-lets-encrypt"
+    ],
+    "directives": {
+      "foo" : "bar",
+      "bar" : "baz",
+      "gen" : "@GEN",
+      "gen-20" : "@GEN(20)",
+      "gen-20-numbers" : "@GEN(20;0123456789)"
+    },
+    "env-variables": {
+      "FOO" : "%foo%-%bar%",
+      "STATIC" : "phpunit"
+    },
+    "tasks": [
+      "some:task"
+    ]
+  }
 }
+
