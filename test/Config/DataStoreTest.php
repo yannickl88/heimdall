@@ -32,8 +32,8 @@ class DataStoreTest extends TestCase
     public function testLoadFromFile(): void
     {
         $serializer = $this->prophesize(SerializerInterface::class);
-        $serializer->load(Argument::any())->willReturn([['http://foo.bar' => ['token' => 'foobar']], [], []]);
-        $serializer->dump(Argument::any(), [['http://foo.bar' => ['token' => 'foobar']], [], []])->shouldBeCalled();
+        $serializer->load(Argument::any())->willReturn([['http://foo.bar' => ['token' => 'foobar']], [], [], []]);
+        $serializer->dump(Argument::any(), [['http://foo.bar' => ['token' => 'foobar']], [], [], []])->shouldBeCalled();
 
         $data_store = new DataStore(__FILE__, $this->api->reveal(), $serializer->reveal());
         $data_store->save();
@@ -49,7 +49,7 @@ class DataStoreTest extends TestCase
         $this->data_store->register('http://foo.bar')->init('foobar');
         $this->data_store->add('test')->initFrom('http://foo.bar');
 
-        $configs = $this->data_store->configs();
+        $configs = $this->data_store->configs()->all();
 
         self::assertCount(1, $configs);
         self::assertSame('test', $configs[0]->getIdentifier());
@@ -66,7 +66,7 @@ class DataStoreTest extends TestCase
 
         $register->init('foobar');
 
-        $this->serializer->dump(Argument::any(), [['http://foo.bar' => ['token' => 'foobar']], [], []])->shouldBeCalled();
+        $this->serializer->dump(Argument::any(), [['http://foo.bar' => ['token' => 'foobar']], [], [], []])->shouldBeCalled();
 
         $this->data_store->save();
     }
@@ -130,7 +130,8 @@ class DataStoreTest extends TestCase
         $this->serializer->dump(Argument::any(), [
             ['http://foo.bar' => ['token' => 'foobar']],
             [],
-            ['test' => ['repository' => 'http://foo.bar', 'config' => ['data' => []]]]
+            ['test' => ['repository' => 'http://foo.bar', 'config' => ['data' => []]]],
+            []
         ])->shouldBeCalled();
 
         $this->data_store->save();

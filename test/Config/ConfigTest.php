@@ -37,7 +37,7 @@ class ConfigTest extends TestCase
         $data_store->register('http://foo.bar')->init('foobar');
         $data_store->add('test')->initFrom('http://foo.bar');
 
-        $config = $data_store->configs()[0];
+        $config = $data_store->configs()->all()[0];
 
         self::assertSame('test', $config->getIdentifier());
         self::assertSame('bar', $config->getFact('foo'));
@@ -52,7 +52,7 @@ class ConfigTest extends TestCase
         self::assertSame(['some:task'], $config->getTasks());
 
         // load config again
-        $config_new = $data_store->configs()[0];
+        $config_new = $data_store->configs()->all()[0];
 
         // Make sure the generated values are the same after a reload
         self::assertSame($config->getFact('gen'), $config_new->getFact('gen'));

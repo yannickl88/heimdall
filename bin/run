@@ -1,5 +1,8 @@
 #!/usr/bin/php
 <?php
+
+use Yannickl88\Server\Config\Api;
+
 require __DIR__ . '/../vendor/autoload.php';
 
 function parseArgs($argv, array $options = [], array $option_values = []) {
@@ -30,7 +33,21 @@ function parseArgs($argv, array $options = [], array $option_values = []) {
     return [$options, $arguments];
 }
 
-[$options, $arguments] = parseArgs($argv, ['quiet' => false, 'register' => false, 'add' => false]);
+function handleError(\Throwable $e): void
+{
+    echo '[' . get_class($e) . '] ' . $e->getMessage() . "\n\n",
+        $e->getTraceAsString() . "\n\n",
+        "-----------------\n\n";
+}
+
+[$options, $arguments] = parseArgs($argv, [
+    'quiet' => false,
+    'register' => false,
+    'add' => false,
+    'checkout' => false,
+    'update' => false,
+    'publish' => false,
+]);
 
 if ($options['help']) {
     echo "Usage: run [OPTION]... [FILE|DIRECTORY]\n",
@@ -47,7 +64,8 @@ if ($options['help']) {
 }
 
 $datastore = new \Yannickl88\Server\Config\DataStore(
-    'heimdal.lock',
+    'heimdall.lock',
+    new Api(),
     new \Yannickl88\Server\Config\DataStoreSerializer()
 );
 
@@ -72,7 +90,7 @@ if ($options['register']) {
 
         $loader->init($token);
     } catch (\RuntimeException $e) {
-        echo 'Error! ', $e->getMessage(), "\n";
+        handleError($e);
 
         exit(1);
     }
@@ -96,7 +114,7 @@ if ($options['add']) {
     try {
         $loader = $datastore->add($identifier);
     } catch (\RuntimeException $e) {
-        echo 'Error! ', $e->getMessage(), "\n";
+        handleError($e);
 
         exit(1);
     }
@@ -139,7 +157,79 @@ if ($options['add']) {
     exit(0);
 }
 
-foreach ($datastore->configs() as $config) {
+if ($options['checkout']) {
+    if (count($arguments) !== 1) {
+        echo "Wrong number of arguments, expected 1.\n";
+
+        exit(1);
+    }
+
+    try {
+        $datastore->publisher($arguments[0])->dump();
+
+        echo "File has been stored.\n";
+    } catch (\Throwable $e) {
+        handleError($e);
+        exit(1);
+    } finally {
+        $datastore->save();
+    }
+
+    exit(0);
+}
+
+if ($options['update']) {
+    if (count($arguments) !== 1) {
+        echo "Wrong number of arguments, expected 1.\n";
+
+        exit(1);
+    }
+
+    try {
+        $datastore->publisher($arguments[0])->update();
+
+        echo "File has been updated.\n";
+    } catch (\Throwable $e) {
+        handleError($e);
+        exit(1);
+    } finally {
+        $datastore->save();
+    }
+
+    exit(0);
+}
+
+if ($options['publish']) {
+    if (count($arguments) !== 1) {
+        echo "Wrong number of arguments, expected 1.\n";
+
+        exit(1);
+    }
+
+    try {
+        $datastore->publisher($arguments[0])->publish();
+
+        echo "File has been published.\n";
+    } catch (\Throwable $e) {
+        handleError($e);
+        exit(1);
+    } finally {
+        $datastore->save();
+    }
+
+    exit(0);
+}
+
+if (count($arguments) !== 0) {
+    echo "Too many arguments, expected 0.\n";
+
+    exit(1);
+}
+
+$configs = $datastore->configs();
+$configs->update();
+
+foreach ($configs->all() as $config) {
     $task_loader = new \Yannickl88\Server\TaskLoader();
 
     try {
@@ -159,11 +249,8 @@ foreach ($datastore->configs() as $config) {
             echo " ERROR\n";
         }
 
-        echo 'Error when processing config ' . $config->getIdentifier() . "\n\n",
-            '[' . get_class($e) . ']',
-            'Exception occured: ' . $e->getMessage() . "\n\n",
-            $e->getTraceAsString() . "\n\n",
-        "-----------------\n\n";
+        handleError($e);
+        exit(1);
     } finally {
         $datastore->save();
     }
