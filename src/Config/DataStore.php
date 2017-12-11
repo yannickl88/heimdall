@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server\Config;
+namespace Yannickl88\Heimdall\Config;
 
-use Yannickl88\Server\Config\Exception\AlreadyRegisteredException;
-use Yannickl88\Server\Config\Exception\AlreadyUpToDateException;
-use Yannickl88\Server\Config\Exception\BadRepositoryException;
-use Yannickl88\Server\Config\Exception\ConfigAlreadyAddedException;
-use Yannickl88\Server\Config\Exception\ConfigNotFoundException;
-use Yannickl88\Server\Config\Exception\FileChangedException;
-use Yannickl88\Server\Config\Exception\InvalidUrlException;
-use Yannickl88\Server\Config\Exception\UnknownFileException;
+use Yannickl88\Heimdall\Config\Exception\AlreadyRegisteredException;
+use Yannickl88\Heimdall\Config\Exception\AlreadyUpToDateException;
+use Yannickl88\Heimdall\Config\Exception\BadRepositoryException;
+use Yannickl88\Heimdall\Config\Exception\ConfigAlreadyAddedException;
+use Yannickl88\Heimdall\Config\Exception\ConfigNotFoundException;
+use Yannickl88\Heimdall\Config\Exception\FileChangedException;
+use Yannickl88\Heimdall\Config\Exception\InvalidUrlException;
+use Yannickl88\Heimdall\Config\Exception\UnknownFileException;
 
 class DataStore
 {
@@ -317,7 +317,7 @@ class DataStore
      *
      * @param $identifier
      * @return ConfigLoaderInterface
-     * @throws \Yannickl88\Server\Config\Exception\ConfigAlreadyAddedException
+     * @throws \Yannickl88\Heimdall\Config\Exception\ConfigAlreadyAddedException
      */
     public function add($identifier): ConfigLoaderInterface
     {

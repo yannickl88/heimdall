@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server\Config;
+namespace Yannickl88\Heimdall\Config;
 
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \Yannickl88\Server\Config\DataStoreSerializer
+ * @covers \Yannickl88\Heimdall\Config\DataStoreSerializer
  */
 class DataStoreSerializerTest extends TestCase
 {

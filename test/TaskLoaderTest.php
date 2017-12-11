@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server;
+namespace Yannickl88\Heimdall;
 
 use PHPUnit\Framework\TestCase;
-use Yannickl88\Server\Task\GeneratedEnvScript;
+use Yannickl88\Heimdall\Task\GeneratedEnvScript;
 
 /**
- * @covers \Yannickl88\Server\TaskLoader
+ * @covers \Yannickl88\Heimdall\TaskLoader
  */
 class TaskLoaderTest extends TestCase
 {

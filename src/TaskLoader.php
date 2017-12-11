@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server;
+namespace Yannickl88\Heimdall;
 
-use Yannickl88\Server\Task\Tasks;
+use Yannickl88\Heimdall\Task\Tasks;
 
 final class TaskLoader
 {

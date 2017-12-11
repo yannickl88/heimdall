@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server\Config;
+namespace Yannickl88\Heimdall\Config;
 
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 
 /**
- * @covers \Yannickl88\Server\Config\DataStore
+ * @covers \Yannickl88\Heimdall\Config\DataStore
  */
 class DataStoreTest extends TestCase
 {

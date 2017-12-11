@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 
-use Yannickl88\Server\Config\Api;
+use Yannickl88\Heimdall\Config\Api;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -63,10 +63,10 @@ if ($options['help']) {
     exit(0);
 }
 
-$datastore = new \Yannickl88\Server\Config\DataStore(
+$datastore = new \Yannickl88\Heimdall\Config\DataStore(
     'heimdall.lock',
     new Api(),
-    new \Yannickl88\Server\Config\DataStoreSerializer()
+    new \Yannickl88\Heimdall\Config\DataStoreSerializer()
 );
 
 if ($options['register']) {
@@ -230,7 +230,7 @@ $configs = $datastore->configs();
 $configs->update();
 
 foreach ($configs->all() as $config) {
-    $task_loader = new \Yannickl88\Server\TaskLoader();
+    $task_loader = new \Yannickl88\Heimdall\TaskLoader();
 
     try {
         foreach ($task_loader->getTasks($config->getTasks()) as $task) {

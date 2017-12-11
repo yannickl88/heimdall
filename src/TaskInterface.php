@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server;
+namespace Yannickl88\Heimdall;
 
-use Yannickl88\Server\Config\ConfigInterface;
+use Yannickl88\Heimdall\Config\ConfigInterface;
 
 interface TaskInterface
 {

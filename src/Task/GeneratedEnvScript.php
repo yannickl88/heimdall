@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server\Task;
+namespace Yannickl88\Heimdall\Task;
 
-use Yannickl88\Server\Config\ConfigInterface;
-use Yannickl88\Server\TaskInterface;
+use Yannickl88\Heimdall\Config\ConfigInterface;
+use Yannickl88\Heimdall\TaskInterface;
 
 /**
  * Generates a script which exports all environment variables.

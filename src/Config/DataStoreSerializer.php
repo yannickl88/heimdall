@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server\Config;
+namespace Yannickl88\Heimdall\Config;
 
 final class DataStoreSerializer implements SerializerInterface
 {

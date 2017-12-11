@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server\Task;
+namespace Yannickl88\Heimdall\Task;
 
 use PHPUnit\Framework\TestCase;
-use Yannickl88\Server\Config\ConfigInterface;
+use Yannickl88\Heimdall\Config\ConfigInterface;
 
 /**
- * @covers \Yannickl88\Server\Task\Tasks
+ * @covers \Yannickl88\Heimdall\Task\Tasks
  */
 class TasksTest extends TestCase
 {

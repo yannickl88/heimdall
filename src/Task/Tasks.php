@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server\Task;
+namespace Yannickl88\Heimdall\Task;
 
 final class Tasks
 {

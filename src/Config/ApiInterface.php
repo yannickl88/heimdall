@@ -1,6 +1,6 @@
 <?php
 
-namespace Yannickl88\Server\Config;
+namespace Yannickl88\Heimdall\Config;
 
 interface ApiInterface
 {

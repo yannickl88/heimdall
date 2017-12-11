@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server\Config;
+namespace Yannickl88\Heimdall\Config;
 
-use Yannickl88\Server\Config\Exception\AlreadyUpToDateException;
-use Yannickl88\Server\Config\Exception\FileChangedException;
-use Yannickl88\Server\Config\Exception\UnknownFileException;
+use Yannickl88\Heimdall\Config\Exception\AlreadyUpToDateException;
+use Yannickl88\Heimdall\Config\Exception\FileChangedException;
+use Yannickl88\Heimdall\Config\Exception\UnknownFileException;
 
 interface PublisherInterface
 {

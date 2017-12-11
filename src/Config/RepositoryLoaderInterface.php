@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Yannickl88\Server\Config;
+namespace Yannickl88\Heimdall\Config;
 
 
-use Yannickl88\Server\Config\Exception\BadRepositoryException;
+use Yannickl88\Heimdall\Config\Exception\BadRepositoryException;
 
 interface RepositoryLoaderInterface
 {
