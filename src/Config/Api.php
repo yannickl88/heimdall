@@ -3,8 +3,20 @@ declare(strict_types=1);
 
 namespace Yannickl88\Heimdall\Config;
 
+use GuzzleHttp\Client;
+
 final class Api implements ApiInterface
 {
+    private $client;
+
+    public function __construct()
+    {
+        $this->client = new Client([
+            'timeout'  => 5,
+            'http_errors' => false,
+        ]);
+    }
+
     public function fetchConfig(string $repo, string $token, string $identifier): array
     {
         // http://heimdall.dev/api/v1/config/voeding.coach
@@ -26,27 +38,33 @@ final class Api implements ApiInterface
         // http://heimdall.dev/api/v1/config/identifiers
         $url = $repo . '/api/v1/config/' . rawurlencode($identifier) . '?token=' . rawurlencode($token);
 
-        $response = $this->send($url, 'PUT', json_encode(['parent_revision' => $parent_revision, 'data' => $data]));
+        $response = $this->send($url, 'PUT', ['parent_revision' => $parent_revision, 'data' => $data]);
 
         return $response['revision'];
     }
 
-    private function send(string $url, string $method = 'GET', string $payload = ''): array
+    public function initConfig(string $repo, string $token, string $identifier): string
     {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 5);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+        // http://heimdall.dev/api/v1/config/identifiers
+        $url = $repo . '/api/v1/config/' . rawurlencode($identifier) . '?token=' . rawurlencode($token);
 
-        if (!empty($payload)) {
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $payload);
+        $response = $this->send($url, 'POST');
+
+        return $response['revision'];
+    }
+
+    private function send(string $url, string $method = 'GET', array $payload = null): array
+    {
+        $options = [];
+
+        if (null !== $payload) {
+            $options['json'] = $payload;
         }
 
-        $data = curl_exec($curl);
-        $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
+        $res = $this->client->request($method, $url, $options);
+
+        $http_code = $res->getStatusCode();
+        $data = $res->getBody()->__toString();
 
         if ($http_code === 404) {
             throw ApiException::notFoundError($data);

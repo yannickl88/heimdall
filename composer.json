@@ -18,7 +18,9 @@
             "Yannickl88\\Heimdall\\": "test/"
         }
     },
-    "require": {},
+    "require": {
+        "guzzlehttp/guzzle": "^6.3"
+    },
     "require-dev": {
         "phpunit/phpunit": "^6.4"
     },

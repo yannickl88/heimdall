@@ -156,17 +156,16 @@ class DataStore
     /**
      * @param string $identifier
      * @return PublisherInterface
-     * @throws ConfigNotFoundException
      */
     public function publisher(string $identifier): PublisherInterface
     {
-        if (!isset($this->config_data[$identifier])) {
-            throw new ConfigNotFoundException('Config does not exists.');
-        }
-
         $file = getcwd() . DIRECTORY_SEPARATOR . $identifier . '.json';
 
         $binding_update = function () use ($file, $identifier) {
+            if (!isset($this->config_data[$identifier])) {
+                throw new ConfigNotFoundException('Config does not exists.');
+            }
+
             if (file_exists($file)) {
                 // does the file contain changes?
                 $data = json_decode(file_get_contents($file), true);
@@ -193,6 +192,10 @@ class DataStore
         };
 
         $binding_dump = function () use ($file, $identifier) {
+            if (!isset($this->config_data[$identifier])) {
+                throw new ConfigNotFoundException('Config does not exists.');
+            }
+
             $this->checkouts[$file] = [
                 'revision' => $this->config_data[$identifier]['config']['revision']
             ];
@@ -200,14 +203,37 @@ class DataStore
             $this->serializer->dump($file, $this->config_data[$identifier]['config']['data']);
         };
 
-        $binding_publish = function () use ($file, $identifier) {
+        $binding_exists = function () use ($identifier) {
+            return isset($this->config_data[$identifier]);
+        };
+
+        $binding_get_repositories = function () {
+            return array_keys($this->repositories);
+        };
+
+        $binding_publish = function (string $repo = null) use ($file, $identifier) {
             if (!file_exists($file)) {
                 throw new UnknownFileException('No file to publish.');
             }
 
-            $repo = $this->config_data[$identifier]['repository'];
-            $token = $this->repositories[$repo]['token'];
-            $parent_revision = $this->checkouts[$file]['revision'];
+            if ($repo === null && !isset($this->config_data[$identifier])) {
+                throw new ConfigNotFoundException('Config does not exists.');
+            }
+
+            if ($repo !== null && isset($this->config_data[$identifier])) {
+                throw new ConfigAlreadyAddedException('Config has already been added.');
+            }
+
+
+            if ($repo === null) {
+                $repo = $this->config_data[$identifier]['repository'];
+                $token = $this->repositories[$repo]['token'];
+                $parent_revision = $this->checkouts[$file]['revision'];
+            } else {
+                $token = $this->repositories[$repo]['token'];
+                $parent_revision = $this->api->initConfig($repo, $token, $identifier);
+            }
+
             $data = json_decode(file_get_contents($file), true);
 
             $new_revision = $this->api->publishConfig($repo, $token, $identifier, $parent_revision, $data);
@@ -219,18 +245,23 @@ class DataStore
             $this->config_data[$identifier]['config']['data'] = $data;
             $this->config_data[$identifier]['config']['parent_revision'] = $parent_revision;
             $this->config_data[$identifier]['config']['revision'] = $new_revision;
+
         };
 
-        return new class($binding_update, $binding_dump, $binding_publish) implements PublisherInterface
+        return new class($binding_update, $binding_dump, $binding_exists, $binding_get_repositories, $binding_publish) implements PublisherInterface
         {
             private $binding_update;
             private $binding_dump;
+            private $binding_exists;
+            private $binding_get_repositories;
             private $binding_publish;
 
-            public function __construct(callable $update, callable $dump, callable $publish)
+            public function __construct(callable $update, callable $dump, callable $exists, callable $get_repositories, callable $publish)
             {
                 $this->binding_update = $update;
                 $this->binding_dump = $dump;
+                $this->binding_exists = $exists;
+                $this->binding_get_repositories = $get_repositories;
                 $this->binding_publish = $publish;
             }
 
@@ -244,9 +275,19 @@ class DataStore
                 \call_user_func($this->binding_dump);
             }
 
-            public function publish(): void
+            public function exists(): bool
             {
-                \call_user_func($this->binding_publish);
+                return \call_user_func($this->binding_exists);
+            }
+
+            public function getRepositories(): array
+            {
+                return \call_user_func($this->binding_get_repositories);
+            }
+
+            public function publish(string $repo = null): void
+            {
+                \call_user_func($this->binding_publish, $repo);
             }
         };
     }

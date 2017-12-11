@@ -58,7 +58,13 @@ if ($options['help']) {
         "\n",
         "Options to use\n",
         "  --help        Print this help.\n",
-        "  --quiet       Does not print any output other than errors.\n";
+        "  --quiet       Does not print any output other than errors.\n",
+        "  --register    Add a repository to the current client.\n",
+        "  --add         Add a identifier to the current client.\n",
+        "  --checkout    Checkout a config from the client, this will dump the config to a file.\n",
+        "  --update      Update the config from the repository.\n",
+        "  --publish     Publish the config to the repository.\n",
+        "";
 
     exit(0);
 }
@@ -207,7 +213,43 @@ if ($options['publish']) {
     }
 
     try {
-        $datastore->publisher($arguments[0])->publish();
+        $publisher = $datastore->publisher($arguments[0]);
+
+        if ($publisher->exists()) {
+            $publisher->publish();
+        } else {
+            $possible_repositories = $publisher->getRepositories();
+
+            if (count($possible_repositories) === 0) {
+                echo "No repository found to publish to.\n";
+
+                exit(1);
+            }
+
+            $selected_repository = null;
+
+            if (count($possible_repositories) === 1) {
+                $selected_repository = $possible_repositories[0];
+            } else {
+                do {
+                    echo "Multiple repositories found.\n",
+                    "Which one do you want to use?\n";
+                    foreach ($possible_repositories as $i => $possible_repository) {
+                        echo ' [' . ($i + 1) . "] $possible_repository\n";
+                    }
+
+                    $choice = readline('Repository: ');
+
+                    if (ctype_digit($choice) && 0 < (int) $choice && count($possible_repositories) > (int) $choice) {
+                        $selected_repository = $possible_repositories[(int) $choice - 1];
+                    } else {
+                        echo "Please pick a number between 1 and {count($possible_repositories}\n";
+                    }
+                } while($selected_repository === null);
+            }
+
+            $publisher->publish($selected_repository);
+        }
 
         echo "File has been published.\n";
     } catch (\Throwable $e) {
