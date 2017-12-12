@@ -3,6 +3,6 @@
   "directives": {
     "etc.apache.vhost_location" : "/etc/apache2/sites-available/",
     "etc.apache.document_root" : "web",
-    "etc.env.vars_location" : "/root/"
+    "etc.env.vars_location" : "/var/opt/"
   }
 }
