@@ -21,7 +21,7 @@ class GeneratedEnvScript implements TaskInterface
         $lines = [];
 
         foreach ($config->getEnvironmentVariableKeys() as $key) {
-            $lines[] = 'export ' . $key . '=' . $this->escape($config->getEnvironmentVariable($key));
+            $lines[] = 'export ' . $key . '=\'' . $this->escape($config->getEnvironmentVariable($key)) . '\'';
         }
 
         $lines[] = '';
