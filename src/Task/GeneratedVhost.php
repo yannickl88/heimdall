@@ -71,7 +71,7 @@ class GeneratedVhost implements TaskInterface
     {
         return [
             'ServerAdmin webmaster@localhost',
-            'DocumentRoot /var/www/' . $config->getFact('host.name') . '/current/web',
+            'DocumentRoot /var/www/' . $config->getFact('host.name') . '/current/' . $config->getFact('etc.apache.document_root'),
             '',
             'ErrorLog ${APACHE_LOG_DIR}/error.log',
             'CustomLog ${APACHE_LOG_DIR}/access.log combined',
@@ -84,7 +84,7 @@ class GeneratedVhost implements TaskInterface
         $index = $config->getFact('host.indexed', 'no') === 'yes';
 
         return [
-            '<Directory /var/www/' . $config->getFact('host.name') . '/current/web>',
+            '<Directory /var/www/' . $config->getFact('host.name') . '/current/' . $config->getFact('etc.apache.document_root') . '>',
             [
                 $index ? 'Options Indexes FollowSymLinks' : 'Options FollowSymLinks',
                 'AllowOverride All',
