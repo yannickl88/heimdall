@@ -272,6 +272,10 @@ $configs = $datastore->configs();
 $configs->update();
 
 foreach ($configs->all() as $config) {
+    if (!$options['quiet']) {
+        echo 'Processing run for', $config->getIdentifier(), "\n";
+    }
+
     $task_loader = new \Yannickl88\Heimdall\TaskLoader();
 
     try {

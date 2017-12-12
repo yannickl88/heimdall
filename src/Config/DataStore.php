@@ -241,6 +241,10 @@ class DataStore
             // update revision of the file
             $this->checkouts[$file]['revision'] = $new_revision;
 
+            if (!isset($this->config_data[$identifier])) {
+                $this->config_data[$identifier] = ['repository' => $repo];
+            }
+
             // update the cached config revision
             $this->config_data[$identifier]['config']['data'] = $data;
             $this->config_data[$identifier]['config']['parent_revision'] = $parent_revision;
