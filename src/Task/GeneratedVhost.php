@@ -98,7 +98,9 @@ class GeneratedVhost implements TaskInterface
     private function getSslConfig(ConfigInterface $config): array
     {
         $ssl_paths = $config->getFact('cert.base_path');
-        $domain = $config->getFact('host.name');
+        $domain = $config->hasFact('cert.host_name')
+            ? $config->getFact('cert.host_name')
+            : $config->getFact('host.name');
 
         return [
             'Include ' . dirname($ssl_paths) . '/options-ssl-apache.conf',
