@@ -116,7 +116,10 @@ class GeneratedVhost implements TaskInterface
         $lines = ['ServerName ' . $config->getFact('host.name')];
 
         if ($config->hasFact('host.alias')) {
-            $lines[] = 'ServerAlias ' . $config->getFact('host.alias');
+            foreach (explode(';', $config->getFact('host.alias')) as $alias) {
+                $lines[] = 'ServerAlias ' . $alias;
+            }
+
         }
 
         $lines[] = '';

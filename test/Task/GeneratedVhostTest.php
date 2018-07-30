@@ -72,6 +72,26 @@ class GeneratedVhostTest extends TestCase
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-alias.expected.conf', __DIR__ . '/foo.bar.conf');
     }
 
+    public function testRunWithMultipleAliases()
+    {
+        $config = $this->prophesize(ConfigInterface::class);
+        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
+        $config->getEnvironmentVariable('foo')->willReturn('foobar');
+        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
+        $config->getFact('etc.apache.document_root')->willReturn('web');
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
+        $config->getFact('host.name')->willReturn('foo.bar');
+        $config->getFact('host.alias')->willReturn('www1.foo.bar;www2.foo.bar;www3.foo.bar');
+        $config->getFact('host.schema', 'http')->willReturn('http');
+        $config->getFact('host.indexed', 'no')->willReturn('no');
+        $config->hasFact('host.port')->willReturn(false);
+        $config->hasFact('host.alias')->willReturn(true);
+
+        $this->generated_vhost->run($config->reveal());
+
+        self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-multi-alias.expected.conf', __DIR__ . '/foo.bar.conf');
+    }
+
     public function testRunIndexable()
     {
         $config = $this->prophesize(ConfigInterface::class);
@@ -184,6 +204,34 @@ class GeneratedVhostTest extends TestCase
 
         self::assertFileEquals(
             __DIR__ . '/fixtures/generate-vhost-https-alias.expected.conf',
+            __DIR__ . '/foo.bar.conf'
+        );
+    }
+
+    public function testRunHttpsWithMultipleAliases()
+    {
+        $config = $this->prophesize(ConfigInterface::class);
+        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
+        $config->getEnvironmentVariable('foo')->willReturn('foobar');
+        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
+        $config->getFact('etc.apache.document_root')->willReturn('web');
+        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
+        $config->getFact('host.name')->willReturn('foo.bar');
+        $config->getFact('host.alias')->willReturn('www1.foo.bar;www2.foo.bar;www3.foo.bar');
+        $config->getFact('host.schema', 'http')->willReturn('https');
+        $config->getFact('host.indexed', 'no')->willReturn('no');
+        $config->getFact('cert.base_path')->willReturn('/foo/bar');
+        $config->getFact('cert.cert_name')->willReturn('cert.pem');
+        $config->getFact('cert.privkey_name')->willReturn('privkey.pem');
+        $config->getFact('cert.chain_name')->willReturn('chain.pem');
+        $config->hasFact('host.port')->willReturn(false);
+        $config->hasFact('host.alias')->willReturn(true);
+        $config->hasFact('cert.host_name')->willReturn(false);
+
+        $this->generated_vhost->run($config->reveal());
+
+        self::assertFileEquals(
+            __DIR__ . '/fixtures/generate-vhost-https-multi-alias.expected.conf',
             __DIR__ . '/foo.bar.conf'
         );
     }
