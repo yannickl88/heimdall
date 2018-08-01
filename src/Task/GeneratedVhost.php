@@ -82,12 +82,13 @@ class GeneratedVhost implements TaskInterface
     private function getDirectory(ConfigInterface $config): array
     {
         $index = $config->getFact('host.indexed', 'no') === 'yes';
+        $htaccess = $config->getFact('host.htaccess', 'yes') === 'yes';
 
         return [
             '<Directory /var/www/' . $config->getFact('host.name') . '/current/' . $config->getFact('etc.apache.document_root') . '>',
             [
                 $index ? 'Options Indexes FollowSymLinks' : 'Options FollowSymLinks',
-                'AllowOverride All',
+                'AllowOverride ' . ( $htaccess ? 'All' : 'None'),
                 'Require all granted',
                 'Allow from all',
             ],
