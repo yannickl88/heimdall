@@ -35,172 +35,135 @@ class GeneratedVhostTest extends TestCase
 
     public function testRun()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('http');
-        $config->getFact('host.indexed', 'no')->willReturn('no');
-        $config->hasFact('host.port')->willReturn(false);
-        $config->hasFact('host.alias')->willReturn(false);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost.expected.conf', __DIR__ . '/foo.bar.conf');
     }
 
     public function testRunWithAlias()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.alias')->willReturn('www.foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('http');
-        $config->getFact('host.indexed', 'no')->willReturn('no');
-        $config->hasFact('host.port')->willReturn(false);
-        $config->hasFact('host.alias')->willReturn(true);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.alias' => 'www.foo.bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-alias.expected.conf', __DIR__ . '/foo.bar.conf');
     }
 
     public function testRunWithMultipleAliases()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.alias')->willReturn('www1.foo.bar;www2.foo.bar;www3.foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('http');
-        $config->getFact('host.indexed', 'no')->willReturn('no');
-        $config->hasFact('host.port')->willReturn(false);
-        $config->hasFact('host.alias')->willReturn(true);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.alias' => 'www1.foo.bar;www2.foo.bar;www3.foo.bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-multi-alias.expected.conf', __DIR__ . '/foo.bar.conf');
     }
 
     public function testRunIndexable()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('http');
-        $config->getFact('host.indexed', 'no')->willReturn('yes');
-        $config->hasFact('host.port')->willReturn(false);
-        $config->hasFact('host.alias')->willReturn(false);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.indexed' => 'yes',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-indexable.expected.conf', __DIR__ . '/foo.bar.conf');
     }
 
+    public function testRunHtaccess()
+    {
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.indexed' => 'yes',
+            'host.htaccess' => 'no',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
+
+        $this->generated_vhost->run($config);
+
+        self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-htaccess.expected.conf', __DIR__ . '/foo.bar.conf');
+    }
+
     public function testRunPort()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('http');
-        $config->getFact('host.port')->willReturn('1234');
-        $config->getFact('host.indexed', 'no')->willReturn('no');
-        $config->hasFact('host.port')->willReturn(true);
-        $config->hasFact('host.alias')->willReturn(false);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.port' => '1234',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-port.expected.conf', __DIR__ . '/foo.bar.conf');
     }
 
+    public function testRunCacheControl()
+    {
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.cache-control' => '2628000',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
+
+        $this->generated_vhost->run($config);
+
+        self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-cache-control.expected.conf', __DIR__ . '/foo.bar.conf');
+    }
+
     public function testRunHttps()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('https');
-        $config->getFact('host.indexed', 'no')->willReturn('no');
-        $config->getFact('cert.base_path')->willReturn('/foo/bar');
-        $config->getFact('cert.cert_name')->willReturn('cert.pem');
-        $config->getFact('cert.privkey_name')->willReturn('privkey.pem');
-        $config->getFact('cert.chain_name')->willReturn('chain.pem');
-        $config->hasFact('host.port')->willReturn(false);
-        $config->hasFact('host.alias')->willReturn(false);
-        $config->hasFact('cert.host_name')->willReturn(false);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.schema' => 'https',
+            'cert.base_path' => '/foo/bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-https.expected.conf', __DIR__ . '/foo.bar.conf');
     }
 
     public function testRunHttpsDifferentCertHost()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('https');
-        $config->getFact('host.indexed', 'no')->willReturn('no');
-        $config->getFact('cert.base_path')->willReturn('/foo/bar');
-        $config->getFact('cert.cert_name')->willReturn('cert.pem');
-        $config->getFact('cert.privkey_name')->willReturn('privkey.pem');
-        $config->getFact('cert.chain_name')->willReturn('chain.pem');
-        $config->getFact('cert.host_name')->willReturn('foobar.com');
-        $config->hasFact('host.port')->willReturn(false);
-        $config->hasFact('host.alias')->willReturn(false);
-        $config->hasFact('cert.host_name')->willReturn(true);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.schema' => 'https',
+            'cert.base_path' => '/foo/bar',
+            'cert.host_name' => 'foobar.com',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-https-cert-loc.expected.conf', __DIR__ . '/foo.bar.conf');
     }
 
     public function testRunHttpsWithAlias()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.alias')->willReturn('www.foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('https');
-        $config->getFact('host.indexed', 'no')->willReturn('no');
-        $config->getFact('cert.base_path')->willReturn('/foo/bar');
-        $config->getFact('cert.cert_name')->willReturn('cert.pem');
-        $config->getFact('cert.privkey_name')->willReturn('privkey.pem');
-        $config->getFact('cert.chain_name')->willReturn('chain.pem');
-        $config->hasFact('host.port')->willReturn(false);
-        $config->hasFact('host.alias')->willReturn(true);
-        $config->hasFact('cert.host_name')->willReturn(false);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.alias' => 'www.foo.bar',
+            'host.schema' => 'https',
+            'cert.base_path' => '/foo/bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(
             __DIR__ . '/fixtures/generate-vhost-https-alias.expected.conf',
@@ -210,25 +173,15 @@ class GeneratedVhostTest extends TestCase
 
     public function testRunHttpsWithMultipleAliases()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.alias')->willReturn('www1.foo.bar;www2.foo.bar;www3.foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('https');
-        $config->getFact('host.indexed', 'no')->willReturn('no');
-        $config->getFact('cert.base_path')->willReturn('/foo/bar');
-        $config->getFact('cert.cert_name')->willReturn('cert.pem');
-        $config->getFact('cert.privkey_name')->willReturn('privkey.pem');
-        $config->getFact('cert.chain_name')->willReturn('chain.pem');
-        $config->hasFact('host.port')->willReturn(false);
-        $config->hasFact('host.alias')->willReturn(true);
-        $config->hasFact('cert.host_name')->willReturn(false);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.alias' => 'www1.foo.bar;www2.foo.bar;www3.foo.bar',
+            'host.schema' => 'https',
+            'cert.base_path' => '/foo/bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(
             __DIR__ . '/fixtures/generate-vhost-https-multi-alias.expected.conf',
@@ -238,24 +191,15 @@ class GeneratedVhostTest extends TestCase
 
     public function testRunHttpsIndexable()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('https');
-        $config->getFact('host.indexed', 'no')->willReturn('yes');
-        $config->getFact('cert.base_path')->willReturn('/foo/bar');
-        $config->getFact('cert.cert_name')->willReturn('cert.pem');
-        $config->getFact('cert.privkey_name')->willReturn('privkey.pem');
-        $config->getFact('cert.chain_name')->willReturn('chain.pem');
-        $config->hasFact('host.port')->willReturn(false);
-        $config->hasFact('host.alias')->willReturn(false);
-        $config->hasFact('cert.host_name')->willReturn(false);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.schema' => 'https',
+            'host.indexed' => 'yes',
+            'cert.base_path' => '/foo/bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         self::assertFileEquals(
             __DIR__ . '/fixtures/generate-vhost-https-indexable.expected.conf',
@@ -263,28 +207,55 @@ class GeneratedVhostTest extends TestCase
         );
     }
 
+    public function testRunHttpsHtaccess()
+    {
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.schema' => 'https',
+            'host.htaccess' => 'no',
+            'cert.base_path' => '/foo/bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
+
+        $this->generated_vhost->run($config);
+
+        self::assertFileEquals(
+            __DIR__ . '/fixtures/generate-vhost-https-htaccess.expected.conf',
+            __DIR__ . '/foo.bar.conf'
+        );
+    }
+
     public function testRunHttpsPort()
     {
-        $config = $this->prophesize(ConfigInterface::class);
-        $config->getEnvironmentVariableKeys()->willReturn(['foo', 'bar']);
-        $config->getEnvironmentVariable('foo')->willReturn('foobar');
-        $config->getEnvironmentVariable('bar')->willReturn('barbaz');
-        $config->getFact('etc.apache.document_root')->willReturn('web');
-        $config->getFact('etc.apache.vhost_location')->willReturn(__DIR__ . '/');
-        $config->getFact('host.name')->willReturn('foo.bar');
-        $config->getFact('host.schema', 'http')->willReturn('https');
-        $config->getFact('host.port')->willReturn('1234');
-        $config->getFact('host.indexed', 'no')->willReturn('no');
-        $config->getFact('cert.base_path')->willReturn('/foo/bar');
-        $config->getFact('cert.cert_name')->willReturn('cert.pem');
-        $config->getFact('cert.privkey_name')->willReturn('privkey.pem');
-        $config->getFact('cert.chain_name')->willReturn('chain.pem');
-        $config->hasFact('host.port')->willReturn(true);
-        $config->hasFact('host.alias')->willReturn(false);
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.schema' => 'https',
+            'host.port' => '1234',
+            'cert.base_path' => '/foo/bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
 
-        $this->generated_vhost->run($config->reveal());
+        $this->generated_vhost->run($config);
 
         // If there is a port, we fallback to http.
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-port.expected.conf', __DIR__ . '/foo.bar.conf');
+    }
+
+    public function testRunHttpsCacheControl()
+    {
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.schema' => 'https',
+            'host.cache-control' => '2628000',
+            'cert.base_path' => '/foo/bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
+
+        $this->generated_vhost->run($config);
+
+        self::assertFileEquals(
+            __DIR__ . '/fixtures/generate-vhost-https-cache-control.expected.conf',
+            __DIR__ . '/foo.bar.conf'
+        );
     }
 }

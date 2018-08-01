@@ -1,2 +1,2 @@
-export foo=foobar
-export bar=barbaz
+export foo='foobar'
+export bar='barbaz'

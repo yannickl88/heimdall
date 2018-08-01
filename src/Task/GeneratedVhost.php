@@ -47,6 +47,7 @@ class GeneratedVhost implements TaskInterface
             array_splice($https_lines[1], 0, 0, $this->getDirectory($config));
             array_splice($https_lines[1], 0, 0, $this->getSslConfig($config));
             array_splice($https_lines[1], 0, 0, $this->getEnvVars($config));
+            array_splice($https_lines[1], 0, 0, $this->getCacheSettings($config));
             array_splice($https_lines[1], 0, 0, $this->getApacheConfig($config));
             array_splice($https_lines[1], 0, 0, $this->getServerName($config));
 
@@ -58,11 +59,12 @@ class GeneratedVhost implements TaskInterface
             // HTTP info
             array_splice($lines[1], 0, 0, $this->getDirectory($config));
             array_splice($lines[1], 0, 0, $this->getEnvVars($config));
+            array_splice($lines[1], 0, 0, $this->getCacheSettings($config));
             array_splice($lines[1], 0, 0, $this->getApacheConfig($config));
             array_splice($lines[1], 0, 0, $this->getServerName($config));
         }
 
-        $file = $config->getFact('etc.apache.vhost_location') . $config->getFact('host.name') . '.conf';
+        $file = $config->getFact('etc.apache.vhost_location', '/etc/apache/sites-available') . '/' . $config->getFact('host.name') . '.conf';
 
         file_put_contents($file, $this->implode($lines));
     }
@@ -71,7 +73,7 @@ class GeneratedVhost implements TaskInterface
     {
         return [
             'ServerAdmin webmaster@localhost',
-            'DocumentRoot /var/www/' . $config->getFact('host.name') . '/current/' . $config->getFact('etc.apache.document_root'),
+            'DocumentRoot /var/www/' . $config->getFact('host.name') . '/current/' . $config->getFact('etc.apache.document_root', 'web'),
             '',
             'ErrorLog ${APACHE_LOG_DIR}/error.log',
             'CustomLog ${APACHE_LOG_DIR}/access.log combined',
@@ -85,7 +87,7 @@ class GeneratedVhost implements TaskInterface
         $htaccess = $config->getFact('host.htaccess', 'yes') === 'yes';
 
         return [
-            '<Directory /var/www/' . $config->getFact('host.name') . '/current/' . $config->getFact('etc.apache.document_root') . '>',
+            '<Directory /var/www/' . $config->getFact('host.name') . '/current/' . $config->getFact('etc.apache.document_root', 'web') . '>',
             [
                 $index ? 'Options Indexes FollowSymLinks' : 'Options FollowSymLinks',
                 'AllowOverride ' . ( $htaccess ? 'All' : 'None'),
@@ -105,9 +107,9 @@ class GeneratedVhost implements TaskInterface
 
         return [
             'Include ' . dirname($ssl_paths) . '/options-ssl-apache.conf',
-            'SSLCertificateFile ' . $ssl_paths . '/' . $domain . '/' . $config->getFact('cert.cert_name'),
-            'SSLCertificateKeyFile ' . $ssl_paths . '/' . $domain . '/' . $config->getFact('cert.privkey_name'),
-            'SSLCertificateChainFile ' . $ssl_paths . '/' . $domain . '/' . $config->getFact('cert.chain_name'),
+            'SSLCertificateFile ' . $ssl_paths . '/' . $domain . '/' . $config->getFact('cert.cert_name', 'cert.pem'),
+            'SSLCertificateKeyFile ' . $ssl_paths . '/' . $domain . '/' . $config->getFact('cert.privkey_name', 'privkey.pem'),
+            'SSLCertificateChainFile ' . $ssl_paths . '/' . $domain . '/' . $config->getFact('cert.chain_name', 'chain.pem'),
             '',
         ];
     }
@@ -141,12 +143,24 @@ class GeneratedVhost implements TaskInterface
         return $lines;
     }
 
+    private function getCacheSettings(ConfigInterface $config): array
+    {
+        if (empty($cache_control = $config->getFact('host.cache-control', ''))) {
+            return [];
+        }
+
+        return [
+            'Header set Cache-Control "max-age=' . $cache_control . ', public"',
+            ''
+        ];
+    }
+
     private function implode(array $data, string $intent = ''): string
     {
         $str = '';
 
         foreach ($data as $line) {
-            if (is_array($line)) {
+            if (\is_array($line)) {
                 $str .= $this->implode($line, $intent . "\t");
             } else {
                 $str .= (empty($line) ? '' : $intent . $line) . "\n";
