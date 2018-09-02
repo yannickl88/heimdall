@@ -124,6 +124,22 @@ class GeneratedVhostTest extends TestCase
         self::assertFileEquals(__DIR__ . '/fixtures/generate-vhost-cache-control.expected.conf', __DIR__ . '/foo.bar.conf');
     }
 
+    public function testRunKeepAlive()
+    {
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.keep-alive' => 'yes',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
+
+        $this->generated_vhost->run($config);
+
+        self::assertFileEquals(
+            __DIR__ . '/fixtures/generate-vhost-keep-alive.expected.conf',
+            __DIR__ . '/foo.bar.conf'
+        );
+    }
+
     public function testRunHttps()
     {
         $config = new MockConfig('foobar', [
@@ -255,6 +271,26 @@ class GeneratedVhostTest extends TestCase
 
         self::assertFileEquals(
             __DIR__ . '/fixtures/generate-vhost-https-cache-control.expected.conf',
+            __DIR__ . '/foo.bar.conf'
+        );
+    }
+
+    public function testRunHttpsKeepAlive()
+    {
+        $config = new MockConfig('foobar', [
+            'host.name' => 'foo.bar',
+            'host.schema' => 'https',
+            'host.keep-alive' => 'yes',
+            'host.keep-alive-max-requests' => '45',
+            'host.keep-alive-timeout' => '88',
+            'cert.base_path' => '/foo/bar',
+            'etc.apache.vhost_location' => __DIR__,
+        ], ['foo' => 'foobar', 'bar' => 'barbaz']);
+
+        $this->generated_vhost->run($config);
+
+        self::assertFileEquals(
+            __DIR__ . '/fixtures/generate-vhost-https-keep-alive.expected.conf',
             __DIR__ . '/foo.bar.conf'
         );
     }

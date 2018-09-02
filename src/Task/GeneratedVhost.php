@@ -45,6 +45,7 @@ class GeneratedVhost implements TaskInterface
                 '</VirtualHost>'
             ];
             array_splice($https_lines[1], 0, 0, $this->getDirectory($config));
+            array_splice($https_lines[1], 0, 0, $this->getKeepAlive($config));
             array_splice($https_lines[1], 0, 0, $this->getSslConfig($config));
             array_splice($https_lines[1], 0, 0, $this->getEnvVars($config));
             array_splice($https_lines[1], 0, 0, $this->getCacheSettings($config));
@@ -58,6 +59,7 @@ class GeneratedVhost implements TaskInterface
         } else {
             // HTTP info
             array_splice($lines[1], 0, 0, $this->getDirectory($config));
+            array_splice($lines[1], 0, 0, $this->getKeepAlive($config));
             array_splice($lines[1], 0, 0, $this->getEnvVars($config));
             array_splice($lines[1], 0, 0, $this->getCacheSettings($config));
             array_splice($lines[1], 0, 0, $this->getApacheConfig($config));
@@ -151,6 +153,20 @@ class GeneratedVhost implements TaskInterface
 
         return [
             'Header set Cache-Control "max-age=' . $cache_control . ', public"',
+            ''
+        ];
+    }
+
+    private function getKeepAlive(ConfigInterface $config): array
+    {
+        if ($config->getFact('host.keep-alive', 'no') !== 'yes') {
+            return [];
+        }
+
+        return [
+            'KeepAlive On',
+            'MaxKeepAliveRequests ' . $config->getFact('host.keep-alive-max-requests', '100'),
+            'KeepAliveTimeout ' . $config->getFact('host.keep-alive-timeout', '100'),
             ''
         ];
     }
